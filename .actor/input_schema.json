@@ -11,12 +11,6 @@
             "editor": "textfield",
             "prefill": "https://www.farfetch.com/uk/shopping/women/jewellery-1/items.aspx"
         },
-        "category": {
-            "title": "Category",
-            "type": "string",
-            "description": "Product category (e.g., 'jewellery', 'shoes', 'bags').",
-            "editor": "textfield"
-        },
         "minPrice": {
             "title": "Minimum Price",
             "type": "number",

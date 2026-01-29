@@ -7,7 +7,6 @@ await Actor.init();
 const input = (await Actor.getInput()) || {};
 const {
     startUrl = 'https://www.farfetch.com/uk/shopping/women/jewellery-1/items.aspx',
-    category,
     minPrice,
     maxPrice,
     sortBy = 'default',
