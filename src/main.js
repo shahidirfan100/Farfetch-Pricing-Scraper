@@ -17,8 +17,36 @@ const {
 
 const RESULTS_WANTED = Number.isFinite(+RESULTS_WANTED_RAW) ? Math.max(1, +RESULTS_WANTED_RAW) : 20;
 
+// Build URL with filters if startUrl doesn't have them
+const buildUrl = (baseUrl, page = 1) => {
+    const url = new URL(baseUrl);
+    
+    // Add filters if provided and not already in URL
+    if (minPrice && !url.searchParams.has('minPrice')) {
+        url.searchParams.set('minPrice', String(minPrice));
+    }
+    if (maxPrice && !url.searchParams.has('maxPrice')) {
+        url.searchParams.set('maxPrice', String(maxPrice));
+    }
+    if (sortBy && sortBy !== 'default' && !url.searchParams.has('sort')) {
+        const sortMap = {
+            'price_asc': 'price-asc',
+            'price_desc': 'price-desc',
+            'new': 'new-in',
+        };
+        url.searchParams.set('sort', sortMap[sortBy] || sortBy);
+    }
+    if (page > 1) {
+        url.searchParams.set('page', String(page));
+    }
+    
+    return url.href;
+};
+
+const initialUrl = buildUrl(startUrl, 1);
+
 log.info(`Starting Farfetch scraper, results wanted: ${RESULTS_WANTED}`);
-log.info(`Start URL: ${startUrl}`);
+log.info(`Start URL: ${initialUrl}`);
 
 // Normalize image URL
 const normalizeImageUrl = (url) => {
@@ -47,15 +75,15 @@ const seenIds = new Set();
 
 const crawler = new PlaywrightCrawler({
     proxyConfiguration,
-    maxRequestRetries: 5,
+    maxRequestRetries: 3,
     useSessionPool: true,
     sessionPoolOptions: {
-        maxPoolSize: 5,
-        sessionOptions: { maxUsageCount: 3 },
+        maxPoolSize: 3,
+        sessionOptions: { maxUsageCount: 5 },
     },
-    maxConcurrency: 2,
-    requestHandlerTimeoutSecs: 120,
-    navigationTimeoutSecs: 60,
+    maxConcurrency: 3,
+    requestHandlerTimeoutSecs: 90,
+    navigationTimeoutSecs: 45,
     browserPoolOptions: {
         useFingerprints: true,
         fingerprintOptions: {
@@ -68,16 +96,17 @@ const crawler = new PlaywrightCrawler({
     },
     preNavigationHooks: [
         async ({ page }) => {
-            // Block heavy resources
+            // Block only heavy analytics and tracking
             await page.route('**/*', (route) => {
-                const type = route.request().resourceType();
                 const url = route.request().url();
 
-                if (['font', 'media'].includes(type) ||
-                    url.includes('google-analytics') ||
+                if (url.includes('google-analytics') ||
                     url.includes('googletagmanager') ||
+                    url.includes('hotjar') ||
                     url.includes('facebook') ||
-                    url.includes('doubleclick')) {
+                    url.includes('doubleclick') ||
+                    url.includes('tiktok') ||
+                    url.includes('analytics')) {
                     return route.abort();
                 }
                 return route.continue();
@@ -92,17 +121,19 @@ const crawler = new PlaywrightCrawler({
     async requestHandler({ page, request, crawler: crawlerInstance }) {
         log.info(`Processing page: ${request.url}`);
 
-        // Wait for page to fully load
+        // Wait for page to load - domcontentloaded is enough
         await page.waitForLoadState('domcontentloaded');
-        await page.waitForLoadState('networkidle').catch(() => { });
+        
+        // Quick initial wait for JS to execute
+        await page.waitForTimeout(1500);
 
-        // Retry loop - wait for __NEXT_DATA__ to be populated
+        // Retry loop - wait for universal_variable to be populated
         let retries = 0;
-        const maxRetries = 15;
+        const maxRetries = 8;
         let extractedProducts = [];
 
         while (retries < maxRetries && extractedProducts.length === 0) {
-            await page.waitForTimeout(1000);
+            await page.waitForTimeout(500);
             retries++;
 
             // Extract products from window.universal_variable
@@ -205,11 +236,10 @@ const crawler = new PlaywrightCrawler({
             if (hasNextPage) {
                 const currentPage = parseInt(new URL(request.url).searchParams.get('page') || '1');
                 const nextPage = currentPage + 1;
-                const nextUrl = new URL(request.url);
-                nextUrl.searchParams.set('page', String(nextPage));
+                const nextUrl = buildUrl(startUrl, nextPage);
 
                 await crawlerInstance.addRequests([{
-                    url: nextUrl.href,
+                    url: nextUrl,
                     userData: { pageNo: nextPage },
                 }]);
                 log.info(`Queued page ${nextPage}`);
@@ -225,7 +255,7 @@ const crawler = new PlaywrightCrawler({
     },
 });
 
-await crawler.run([{ url: startUrl, userData: { pageNo: 1 } }]);
+await crawler.run([{ url: initialUrl, userData: { pageNo: 1 } }]);
 
 log.info(`Scraping completed. Total products saved: ${saved}`);
 await Actor.exit();
