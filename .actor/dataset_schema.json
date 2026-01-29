@@ -1,0 +1,68 @@
+{
+    "actorSpecification": 1,
+    "fields": {},
+    "views": {
+        "overview": {
+            "title": "Overview",
+            "transformation": {
+                "fields": [
+                    "product_id",
+                    "brand",
+                    "title",
+                    "price",
+                    "original_price",
+                    "discount",
+                    "merchant",
+                    "category",
+                    "isOnSale",
+                    "product_url"
+                ]
+            },
+            "display": {
+                "component": "table",
+                "properties": {
+                    "product_id": {
+                        "label": "Product ID",
+                        "format": "text"
+                    },
+                    "brand": {
+                        "label": "Brand",
+                        "format": "text"
+                    },
+                    "title": {
+                        "label": "Title",
+                        "format": "text"
+                    },
+                    "price": {
+                        "label": "Price",
+                        "format": "text"
+                    },
+                    "original_price": {
+                        "label": "Original Price",
+                        "format": "text"
+                    },
+                    "discount": {
+                        "label": "Discount",
+                        "format": "text"
+                    },
+                    "merchant": {
+                        "label": "Merchant",
+                        "format": "text"
+                    },
+                    "category": {
+                        "label": "Category",
+                        "format": "text"
+                    },
+                    "isOnSale": {
+                        "label": "On Sale",
+                        "format": "text"
+                    },
+                    "product_url": {
+                        "label": "URL",
+                        "format": "text"
+                    }
+                }
+            }
+        }
+    }
+}

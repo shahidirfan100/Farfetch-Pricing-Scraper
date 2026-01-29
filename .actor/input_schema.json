@@ -1,0 +1,77 @@
+{
+    "title": "Farfetch Pricing Scraper",
+    "description": "Extract luxury fashion product listings from Farfetch. Get product details including prices, brands, discounts, and merchant information.",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "startUrl": {
+            "title": "Start URL",
+            "type": "string",
+            "description": "Farfetch category or search URL to scrape from.",
+            "editor": "textfield",
+            "prefill": "https://www.farfetch.com/uk/shopping/women/jewellery-1/items.aspx"
+        },
+        "category": {
+            "title": "Category",
+            "type": "string",
+            "description": "Product category (e.g., 'jewellery', 'shoes', 'bags').",
+            "editor": "textfield"
+        },
+        "minPrice": {
+            "title": "Minimum Price",
+            "type": "number",
+            "description": "Filter products with price greater than or equal to this value.",
+            "editor": "number",
+            "minimum": 0
+        },
+        "maxPrice": {
+            "title": "Maximum Price",
+            "type": "number",
+            "description": "Filter products with price less than or equal to this value.",
+            "editor": "number",
+            "minimum": 0
+        },
+        "sortBy": {
+            "title": "Sort By",
+            "type": "string",
+            "description": "Sort order for search results.",
+            "editor": "select",
+            "enum": [
+                "default",
+                "price_asc",
+                "price_desc",
+                "new"
+            ],
+            "enumTitles": [
+                "Default",
+                "Price: Low to High",
+                "Price: High to Low",
+                "New Arrivals"
+            ],
+            "default": "default"
+        },
+        "results_wanted": {
+            "title": "Results Wanted",
+            "type": "integer",
+            "description": "Maximum number of products to collect.",
+            "minimum": 1,
+            "default": 20,
+            "prefill": 20,
+            "editor": "number"
+        },
+        "proxyConfiguration": {
+            "title": "Proxy Configuration",
+            "type": "object",
+            "description": "Proxy settings. Residential proxies recommended for Farfetch.",
+            "editor": "proxy",
+            "default": {
+                "useApifyProxy": true,
+                "apifyProxyGroups": [
+                    "RESIDENTIAL"
+                ]
+            }
+        }
+    },
+    "required": [],
+    "additionalProperties": false
+}
